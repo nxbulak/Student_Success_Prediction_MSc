@@ -1,3 +1,4 @@
+```
 let
     Source = Progression,
     Grouped = Table.Group(Source, {"Student_ID"}, {
@@ -27,3 +28,4 @@ let
     #"Removed AllRows" = Table.RemoveColumns(#"Expanded Fields", {"AllRows"})
 in
     #"Removed AllRows"
+```
