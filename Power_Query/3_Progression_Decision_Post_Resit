@@ -1,0 +1,29 @@
+let
+    Source = Progression,
+    Grouped = Table.Group(Source, {"Student_ID"}, {
+        {"AllRows", each _, type table}
+    }),
+    #"Added Fields" = Table.AddColumn(Grouped, "Fields", each
+        let
+            rows = [AllRows],
+            PRD2Row = Table.SelectRows(rows, each [Progression Period] = "PRD2"),
+            PRDRRow = Table.SelectRows(rows, each [Progression Period] = "PRDR"),
+            hasResit = Table.RowCount(PRDRRow) > 0,
+            prd2Record = if Table.RowCount(PRD2Row) > 0 then PRD2Row{0} else null
+        in
+            [
+                #"Agreed Progress Decision" = if prd2Record <> null then prd2Record[Agreed Progress Info cd] else null,
+                #"Course Block code" = if prd2Record <> null then prd2Record[Course Block code] else null,
+                #"Route code" = if prd2Record <> null then prd2Record[Route code] else null,
+                #"Progression Year" = if prd2Record <> null then prd2Record[Progression Year] else null,
+                #"Status code" = if prd2Record <> null then prd2Record[Status code] else null,
+                #"Resit?" = if hasResit then "Yes" else "No",
+                #"Agreed Progress Decision (Resit)" = if hasResit then PRDRRow{0}[Agreed Progress Info cd] else null
+            ]
+    ),
+    #"Expanded Fields" = Table.ExpandRecordColumn(#"Added Fields", "Fields", 
+        {"Agreed Progress Decision", "Course Block code", "Route code", "Progression Year", "Status code", "Resit?", "Agreed Progress Decision (Resit)"}
+    ),
+    #"Removed AllRows" = Table.RemoveColumns(#"Expanded Fields", {"AllRows"})
+in
+    #"Removed AllRows"
