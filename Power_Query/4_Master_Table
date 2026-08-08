@@ -1,0 +1,15 @@
+let
+    Step1 = Table.NestedJoin(Attendance, {"Student_ID"}, Engagement, {"Student_ID"}, "Engagement_Data", JoinKind.LeftOuter),
+    #"Expanded Engagement" = Table.ExpandTableColumn(
+        Step1, "Engagement_Data",
+        List.RemoveItems(Table.ColumnNames(Engagement), {"Student_ID"}),
+        List.RemoveItems(Table.ColumnNames(Engagement), {"Student_ID"})
+    ),
+    Step2 = Table.NestedJoin(#"Expanded Engagement", {"Student_ID"}, Progression_Wide, {"Student_ID"}, "Progression_Data", JoinKind.LeftOuter),
+    #"Expanded Progression" = Table.ExpandTableColumn(
+        Step2, "Progression_Data",
+        List.RemoveItems(Table.ColumnNames(Progression_Wide), {"Student_ID"}),
+        List.RemoveItems(Table.ColumnNames(Progression_Wide), {"Student_ID"})
+    )
+in
+    #"Expanded Progression"
