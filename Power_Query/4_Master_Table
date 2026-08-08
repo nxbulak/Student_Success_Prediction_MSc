@@ -1,3 +1,4 @@
+```
 let
     Step1 = Table.NestedJoin(Attendance, {"Student_ID"}, Engagement, {"Student_ID"}, "Engagement_Data", JoinKind.LeftOuter),
     #"Expanded Engagement" = Table.ExpandTableColumn(
@@ -13,3 +14,4 @@ let
     )
 in
     #"Expanded Progression"
+```
