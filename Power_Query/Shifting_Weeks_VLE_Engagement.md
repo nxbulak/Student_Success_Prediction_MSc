@@ -1,0 +1,26 @@
+let
+    Source = Excel.Workbook(File.Contents("[FILE LOCATION]"), null, true),
+    T2_Sheet = Source{[Item="T2",Kind="Sheet"]}[Data],
+    #"Promoted Headers" = Table.PromoteHeaders(T2_Sheet, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"STUDENT_ID", Int64.Type}}),
+    #"Cleaned Headers" = Table.TransformColumnNames(
+        #"Changed Type",
+        each if _ = "STUDENT_ID" then _ else Text.Trim(Text.BeforeDelimiter(_, "("))
+    ),
+    ShiftWeek = (colName as text) as text =>
+        if Text.StartsWith(colName, "Week ") then
+            let
+                afterWeek = Text.RemoveRange(colName, 0, 5),
+                ampPos = Text.PositionOf(afterWeek, " & "),
+                week1 = Number.FromText(Text.Range(afterWeek, 0, ampPos)),
+                afterAmp = Text.RemoveRange(afterWeek, 0, ampPos + 3),
+                spacePos = Text.PositionOf(afterAmp, " "),
+                week2 = Number.FromText(Text.Range(afterAmp, 0, spacePos)),
+                rest = Text.Range(afterAmp, spacePos)
+            in
+                "Week " & Number.ToText(week1 + 10) & " & " & Number.ToText(week2 + 10) & rest
+        else
+            colName,
+    #"Shifted Headers" = Table.TransformColumnNames(#"Cleaned Headers", each ShiftWeek(_))
+in
+    #"Shifted Headers"
